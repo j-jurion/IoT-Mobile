@@ -1,5 +1,7 @@
 # Hub
 
+**ATTENTION! This app is in development. **
+
 Hub is a platform to read and control your BLE (and soon IoT) devices.
 
 Hub is in development. The feature we are working on is BLE connectivity.
