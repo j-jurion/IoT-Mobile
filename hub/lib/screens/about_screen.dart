@@ -40,7 +40,6 @@ class About extends StatelessWidget {
               ),
               textAlign: TextAlign.left,
             ),
-            width: 300,
             margin: EdgeInsets.only(top: 40.0),
           ),
           Container(
@@ -52,7 +51,6 @@ class About extends StatelessWidget {
               ),
               textAlign: TextAlign.left,
             ),
-            width: 300,
           ),
         ],
       ),
