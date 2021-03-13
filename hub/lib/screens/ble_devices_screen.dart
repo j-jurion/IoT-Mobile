@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class BleDevices extends StatefulWidget {
-  BleDevices({Key key, this.title}) : super(key: key);
+  BleDevices(this.favorites, {Key key, this.title}) : super(key: key);
 
+  final Set<BluetoothDevice> favorites;
   final String title;
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
+  final List<BluetoothDevice> devicesList = [];
   final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
 
   @override
-  _BleDevicesState createState() => _BleDevicesState();
+  _BleDevicesState createState() => new _BleDevicesState();
 }
 
 class _BleDevicesState extends State<BleDevices> {
@@ -46,12 +47,17 @@ class _BleDevicesState extends State<BleDevices> {
     widget.flutterBlue.startScan();
   }
 
-  void setFavorite(BluetoothDevice device) {
-    print('Favorite: ' + device.name);
+  void _setFavorite(BluetoothDevice device) {
+    if (widget.favorites.contains(device)) {
+      widget.favorites.remove(device);
+    } else {
+      widget.favorites.add(device);
+    }
+    widget.favorites.forEach((device) => print(device.toString())); //DEBUG
   }
 
   ListView _buildListViewOfDevices() {
-    List<Container> containers = new List<Container>();
+    List<Container> containers = [];
     for (BluetoothDevice device in widget.devicesList) {
       containers.add(
         Container(
@@ -75,9 +81,15 @@ class _BleDevicesState extends State<BleDevices> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.star_border),
+                icon: new Icon(widget.favorites.contains(device)
+                    ? Icons.star
+                    : Icons.star_border),
                 color: Colors.blue,
-                onPressed: () => setFavorite(device),
+                onPressed: () {
+                  setState(() {
+                    _setFavorite(device);
+                  });
+                },
               ),
               TextButton(
                 child: Text('Connect'),
@@ -113,7 +125,7 @@ class _BleDevicesState extends State<BleDevices> {
 
   List<ButtonTheme> _buildReadWriteNotifyButton(
       BluetoothCharacteristic characteristic) {
-    List<ButtonTheme> buttons = new List<ButtonTheme>();
+    List<ButtonTheme> buttons = [];
 
     if (characteristic.properties.read) {
       buttons.add(
@@ -212,10 +224,10 @@ class _BleDevicesState extends State<BleDevices> {
   }
 
   ListView _buildConnectDeviceView() {
-    List<Container> containers = new List<Container>();
+    List<Container> containers = [];
 
     for (BluetoothService service in _services) {
-      List<Widget> characteristicsWidget = new List<Widget>();
+      List<Widget> characteristicsWidget = [];
 
       for (BluetoothCharacteristic characteristic in service.characteristics) {
         characteristicsWidget.add(

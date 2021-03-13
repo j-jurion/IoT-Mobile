@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hub/screens/about_screen.dart';
-import 'package:hub/screens/ble_favorites_screen.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 import './drawer.dart';
 import './screens/about_screen.dart';
@@ -18,6 +17,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final appTitle = 'Hub';
+  final Set<BluetoothDevice> favorites = new Set<BluetoothDevice>();
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +38,8 @@ class _MyAppState extends State<MyApp> {
           drawer: AppDrawer(),
           body: TabBarView(
             children: [
-              BleFavorites(),
-              BleDevices(),
+              BleFavorites(favorites),
+              BleDevices(favorites),
             ],
           ),
         ),
