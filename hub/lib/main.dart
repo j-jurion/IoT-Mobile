@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import './drawer.dart';
 import './screens/about_screen.dart';
 import './screens/ble_favorites_screen.dart';
 import './screens/ble_devices_screen.dart';
+import './constants/colors.dart';
+import './constants/info.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,30 +19,62 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final appTitle = 'Hub';
-  final Set<BluetoothDevice> favorites = new Set<BluetoothDevice>();
+  Set<BluetoothDevice> favorites = new Set<BluetoothDevice>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  _loadFavorites() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      favorites = (prefs.getStringList('devices') ?? {});
+    });
+  }
+
+  _saveFavorite(favorites) async {
+    //print("SAVING..."); //DEBUG
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> favoriteNames = [];
+    for (BluetoothDevice device in favorites) {
+      //print("DEVICE" + device.name); //DEBUG
+      favoriteNames.add(device.id.toString());
+    }
+    prefs.setStringList('devices', favoriteNames);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: appTitle,
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+      ),
+      title: Info.bleAppName,
       home: DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
             bottom: TabBar(
+              indicatorColor: AppColors.background,
               tabs: [
                 Tab(icon: Icon(Icons.star)),
                 Tab(icon: Icon(Icons.stay_current_portrait_outlined)),
               ],
             ),
-            title: Text(appTitle),
+            title: Text(Info.bleAppName),
           ),
           drawer: AppDrawer(),
           body: TabBarView(
             children: [
               BleFavorites(favorites),
-              BleDevices(favorites),
+              BleDevices(
+                favorites,
+                onSaveFavorites: (Set<BluetoothDevice> favorites) {
+                  _saveFavorite(favorites);
+                },
+              )
             ],
           ),
         ),

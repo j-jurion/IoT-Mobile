@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'constants/colors.dart';
+import 'constants/info.dart';
+
 class AppDrawer extends Drawer {
   @override
   Widget build(BuildContext context) {
@@ -9,10 +12,10 @@ class AppDrawer extends Drawer {
         children: <Widget>[
           DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: AppColors.primary,
             ),
             child: Text(
-              'Welcome to Hub!',
+              'Welcome to ' + Info.appName + '!',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
@@ -21,14 +24,14 @@ class AppDrawer extends Drawer {
           ),
           ListTile(
             leading: Icon(Icons.bluetooth),
-            title: Text('BLE Hub'),
+            title: Text(Info.bleAppName),
             onTap: () {
               Navigator.pop(context);
             },
           ),
           ListTile(
             leading: Icon(Icons.network_wifi),
-            title: Text('IoT Hub (Coming soon)'),
+            title: Text(Info.iotAppName + ' (Coming soon)'),
             onTap: null,
           ),
           ListTile(

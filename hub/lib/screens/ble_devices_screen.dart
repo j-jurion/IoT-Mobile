@@ -1,14 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:hub/screens/ble_details_screen.dart';
 
 import './ble_details_screen.dart';
 
 class BleDevices extends StatefulWidget {
-  BleDevices(this.favorites, {Key key, this.title}) : super(key: key);
+  BleDevices(this.favorites, {Key key, this.title, this.onSaveFavorites})
+      : super(key: key);
 
+  final SaveFavoritesCallback onSaveFavorites;
   final Set<BluetoothDevice> favorites;
   final String title;
   final FlutterBlue flutterBlue = FlutterBlue.instance;
@@ -20,7 +19,6 @@ class BleDevices extends StatefulWidget {
 }
 
 class _BleDevicesState extends State<BleDevices> {
-  final _writeController = TextEditingController();
   BluetoothDevice _connectedDevice;
   List<BluetoothService> _services;
 
@@ -56,7 +54,7 @@ class _BleDevicesState extends State<BleDevices> {
     } else {
       widget.favorites.add(device);
     }
-    widget.favorites.forEach((device) => print(device.toString())); //DEBUG
+    widget.onSaveFavorites(widget.favorites);
   }
 
   ListView _buildListViewOfDevices() {
@@ -142,3 +140,5 @@ class _BleDevicesState extends State<BleDevices> {
     ));
   }
 }
+
+typedef SaveFavoritesCallback = void Function(Set<BluetoothDevice> favorites);
