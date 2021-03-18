@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../constants/info.dart';
+import '../settings.dart';
 
 //ignore: must_be_immutable
 class Settings extends StatefulWidget {
+  Settings(this.settings, {this.onSaveSettings});
+
+  final SaveSettingsCallback onSaveSettings;
+  final BleSettings settings;
+
   @override
   _SettingsState createState() => _SettingsState();
 }
 
 class _SettingsState extends State<Settings> {
-  bool bleSenseMode = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,10 +35,11 @@ class _SettingsState extends State<Settings> {
           ),
           CheckboxListTile(
             title: Text("BLE Sense mode"),
-            value: bleSenseMode,
+            value: widget.settings.bleSenseMode,
             onChanged: (bool newValue) {
+              widget.settings.bleSenseMode = newValue;
               setState(() {
-                bleSenseMode = newValue;
+                widget.onSaveSettings(widget.settings);
               });
             },
           ),
@@ -43,3 +48,5 @@ class _SettingsState extends State<Settings> {
     );
   }
 }
+
+typedef SaveSettingsCallback = void Function(BleSettings settings);

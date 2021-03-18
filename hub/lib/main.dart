@@ -9,6 +9,7 @@ import './screens/ble_favorites_screen.dart';
 import './screens/ble_devices_screen.dart';
 import './constants/colors.dart';
 import './constants/info.dart';
+import './settings.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,11 +22,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Set<BluetoothDevice> favorites = new Set<BluetoothDevice>();
+  BleSettings settings = new BleSettings();
 
   @override
   void initState() {
     super.initState();
     _loadFavorites();
+    _loadSettings();
   }
 
   _loadFavorites() async {
@@ -46,6 +49,19 @@ class _MyAppState extends State<MyApp> {
     prefs.setStringList('devices', favoriteNames);
   }
 
+  _loadSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      settings.bleSenseMode = (prefs.getBool('settings') ?? false);
+    });
+  }
+
+  _saveSettings(settings) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('settings', settings.bleSenseMode);
+    _loadSettings();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -64,7 +80,7 @@ class _MyAppState extends State<MyApp> {
                 Tab(icon: Icon(Icons.stay_current_portrait_outlined)),
               ],
             ),
-            title: Text(Info.bleAppName),
+            title: Text(settings.bleSenseMode.toString()),
           ),
           drawer: AppDrawer(),
           body: TabBarView(
@@ -82,7 +98,12 @@ class _MyAppState extends State<MyApp> {
       ),
       routes: {
         '/about': (context) => About(),
-        '/settings': (context) => Settings(),
+        '/settings': (context) => Settings(
+              settings,
+              onSaveSettings: (BleSettings settings) {
+                _saveSettings(settings);
+              },
+            ),
       },
     );
   }
