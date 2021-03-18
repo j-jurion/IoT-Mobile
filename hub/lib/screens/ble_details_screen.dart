@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-import '../constants/colors.dart';
-
 class Details extends StatefulWidget {
   // In the constructor, require a Todo.
   Details({Key key, @required this.connectedDevice, @required this.services})

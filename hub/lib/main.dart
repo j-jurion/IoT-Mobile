@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import './drawer.dart';
 import './screens/about_screen.dart';
+import './screens/settings_screen.dart';
 import './screens/ble_favorites_screen.dart';
 import './screens/ble_devices_screen.dart';
 import './constants/colors.dart';
@@ -74,13 +75,14 @@ class _MyAppState extends State<MyApp> {
                 onSaveFavorites: (Set<BluetoothDevice> favorites) {
                   _saveFavorite(favorites);
                 },
-              )
+              ),
             ],
           ),
         ),
       ),
       routes: {
         '/about': (context) => About(),
+        '/settings': (context) => Settings(),
       },
     );
   }

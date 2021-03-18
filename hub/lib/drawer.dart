@@ -35,6 +35,11 @@ class AppDrawer extends Drawer {
             onTap: null,
           ),
           ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () => Navigator.pushNamed(context, '/settings'),
+          ),
+          ListTile(
             leading: Icon(Icons.info),
             title: Text('About'),
             onTap: () => Navigator.pushNamed(context, '/about'),

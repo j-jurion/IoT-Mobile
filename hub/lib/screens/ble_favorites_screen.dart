@@ -16,6 +16,15 @@ class BleFavorites extends StatefulWidget {
 class _BleFavoritesState extends State<BleFavorites> {
   BluetoothDevice _connectedDevice;
   List<BluetoothService> _services;
+  BluetoothDevice _loadingDevice;
+
+  bool isLoading(BluetoothDevice device) {
+    if (_loadingDevice == device) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   ListView _buildListViewOfFavoriteDevices() {
     List<Container> containers = [];
@@ -42,31 +51,40 @@ class _BleFavoritesState extends State<BleFavorites> {
                   ],
                 ),
               ),
-              TextButton(
-                child: Text('Connect'),
-                onPressed: () async {
-                  widget.flutterBlue.stopScan();
-                  try {
-                    await device.connect();
-                  } catch (e) {
-                    if (e.code != 'already_connected') {
-                      throw e;
-                    }
-                  } finally {
-                    _services = await device.discoverServices();
-                  }
-                  setState(() {
-                    _connectedDevice = device;
-                  });
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Details(
-                            connectedDevice: _connectedDevice,
-                            services: _services)),
-                  );
-                },
-              ),
+              !isLoading(device)
+                  ? TextButton(
+                      child: Text('Connect'),
+                      onPressed: () async {
+                        setState(() {
+                          _loadingDevice = device;
+                        });
+                        widget.flutterBlue.stopScan();
+                        try {
+                          await device.connect();
+                        } catch (e) {
+                          if (e.code != 'already_connected') {
+                            throw e;
+                          }
+                        } finally {
+                          _services = await device.discoverServices();
+                        }
+                        setState(() {
+                          _connectedDevice = device;
+                          _loadingDevice = null;
+                        });
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Details(
+                                  connectedDevice: _connectedDevice,
+                                  services: _services)),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: CircularProgressIndicator(),
+                      widthFactor: 1.9,
+                    )
             ],
           ),
         ),
