@@ -3,8 +3,8 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 import './ble_details_screen.dart';
 
-class BleFavorites extends StatefulWidget {
-  BleFavorites(this.favorites);
+class BleFavoritesScreen extends StatefulWidget {
+  BleFavoritesScreen(this.favorites);
   final Set<BluetoothDevice> favorites;
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
@@ -13,7 +13,7 @@ class BleFavorites extends StatefulWidget {
   _BleFavoritesState createState() => _BleFavoritesState();
 }
 
-class _BleFavoritesState extends State<BleFavorites> {
+class _BleFavoritesState extends State<BleFavoritesScreen> {
   BluetoothDevice _connectedDevice;
   List<BluetoothService> _services;
   BluetoothDevice _loadingDevice;
@@ -75,7 +75,7 @@ class _BleFavoritesState extends State<BleFavorites> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Details(
+                              builder: (context) => DetailsScreen(
                                   connectedDevice: _connectedDevice,
                                   services: _services)),
                         );

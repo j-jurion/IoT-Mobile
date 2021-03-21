@@ -3,8 +3,8 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 import './ble_details_screen.dart';
 
-class BleDevices extends StatefulWidget {
-  BleDevices(this.favorites, {Key key, this.title, this.onSaveFavorites})
+class BleDevicesScreen extends StatefulWidget {
+  BleDevicesScreen(this.favorites, {Key key, this.title, this.onSaveFavorites})
       : super(key: key);
 
   final SaveFavoritesCallback onSaveFavorites;
@@ -18,7 +18,7 @@ class BleDevices extends StatefulWidget {
   _BleDevicesState createState() => new _BleDevicesState();
 }
 
-class _BleDevicesState extends State<BleDevices> {
+class _BleDevicesState extends State<BleDevicesScreen> {
   BluetoothDevice _connectedDevice;
   List<BluetoothService> _services;
   BluetoothDevice _loadingDevice;
@@ -126,7 +126,7 @@ class _BleDevicesState extends State<BleDevices> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Details(
+                              builder: (context) => DetailsScreen(
                                   connectedDevice: _connectedDevice,
                                   services: _services)),
                         );
@@ -152,6 +152,7 @@ class _BleDevicesState extends State<BleDevices> {
 
   @override
   Widget build(BuildContext context) {
+    // print(widget.devicesList); //TODO
     return Container(
         child: Scaffold(
       body: _buildListViewOfDevices(),

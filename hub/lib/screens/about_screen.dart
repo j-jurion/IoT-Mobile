@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/info.dart';
 import '../constants/colors.dart';
 
-class About extends StatelessWidget {
+class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -4,8 +4,8 @@ import '../constants/info.dart';
 import '../settings.dart';
 
 //ignore: must_be_immutable
-class Settings extends StatefulWidget {
-  Settings(this.settings, {this.onSaveSettings});
+class SettingsScreen extends StatefulWidget {
+  SettingsScreen(this.settings, {this.onSaveSettings});
 
   final SaveSettingsCallback onSaveSettings;
   final BleSettings settings;
@@ -14,7 +14,7 @@ class Settings extends StatefulWidget {
   _SettingsState createState() => _SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
+class _SettingsState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

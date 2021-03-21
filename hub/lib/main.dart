@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:hub/screens/ble_blesense_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import './drawer.dart';
@@ -80,13 +81,15 @@ class _MyAppState extends State<MyApp> {
                 Tab(icon: Icon(Icons.stay_current_portrait_outlined)),
               ],
             ),
-            title: Text(settings.bleSenseMode.toString()),
+            title: Text(Info.bleAppName),
           ),
           drawer: AppDrawer(),
           body: TabBarView(
             children: [
-              BleFavorites(favorites),
-              BleDevices(
+              settings.bleSenseMode
+                  ? BleSenseScreen(favorites)
+                  : BleFavoritesScreen(favorites),
+              BleDevicesScreen(
                 favorites,
                 onSaveFavorites: (Set<BluetoothDevice> favorites) {
                   _saveFavorite(favorites);
@@ -97,8 +100,8 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       routes: {
-        '/about': (context) => About(),
-        '/settings': (context) => Settings(
+        '/about': (context) => AboutScreen(),
+        '/settings': (context) => SettingsScreen(
               settings,
               onSaveSettings: (BleSettings settings) {
                 _saveSettings(settings);

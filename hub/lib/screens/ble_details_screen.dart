@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-class Details extends StatefulWidget {
+class DetailsScreen extends StatefulWidget {
   // In the constructor, require a Todo.
-  Details({Key key, @required this.connectedDevice, @required this.services})
+  DetailsScreen(
+      {Key key, @required this.connectedDevice, @required this.services})
       : super(key: key);
 
   final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
@@ -16,7 +17,7 @@ class Details extends StatefulWidget {
   _DetailsState createState() => _DetailsState();
 }
 
-class _DetailsState extends State<Details> {
+class _DetailsState extends State<DetailsScreen> {
   final _writeController = TextEditingController();
 
   List<ButtonTheme> _buildReadWriteNotifyButton(
