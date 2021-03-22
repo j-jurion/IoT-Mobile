@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -26,6 +28,64 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
     }
   }
 
+  Column _buildConnectDeviceView() {
+    List<Container> containers = [];
+
+    for (BluetoothService service in _services) {
+      List<Widget> characteristicsWidget = [];
+
+      for (BluetoothCharacteristic characteristic in service.characteristics) {
+        characteristicsWidget.add(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        characteristic.uuid.toString(),
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      containers.add(
+        Container(
+          margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+          child: Column(
+            children: [
+              Text(
+                service.uuid.toString(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              Column(
+                children: characteristicsWidget,
+              ),
+              Divider(),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        ...containers,
+      ],
+    );
+  }
+
   ListView _buildListViewOfFavoriteDevices() {
     List<Container> containers = [];
 
@@ -45,7 +105,36 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
                     device.id.toString(),
                     textAlign: TextAlign.center,
                   ),
-                  children: [],
+                  onExpansionChanged: (expanding) async {
+                    if (expanding) {
+                      print("Expanding and connecting...");
+                      setState(() {
+                        _loadingDevice = device;
+                      });
+                      widget.flutterBlue.stopScan();
+                      try {
+                        await device.connect();
+                      } catch (e) {
+                        if (e.code != 'already_connected') {
+                          throw e;
+                        }
+                      } finally {
+                        _services = await device.discoverServices();
+                      }
+                      setState(() {
+                        _connectedDevice = device;
+                        _loadingDevice = null;
+                      });
+                      sleep(Duration(seconds: 1));
+                    } else {
+                      print("Closing and disconnecting...");
+                    }
+                  },
+                  children: [
+                    _connectedDevice != null
+                        ? _buildConnectDeviceView()
+                        : Text('No connected device'),
+                  ],
                 ),
               ),
             ],
