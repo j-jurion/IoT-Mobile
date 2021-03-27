@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
           body: TabBarView(
             children: [
               settings.bleSenseMode
-                  ? BleSenseScreen(favorites)
+                  ? BleSenseScreen(favorites, settings)
                   : BleFavoritesScreen(favorites),
               BleDevicesScreen(
                 favorites,

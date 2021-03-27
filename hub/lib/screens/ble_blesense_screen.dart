@@ -1,82 +1,192 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-import './ble_details_screen.dart';
+import '../settings.dart';
 
 class BleSenseScreen extends StatefulWidget {
-  BleSenseScreen(this.favorites);
+  BleSenseScreen(this.favorites, this.settings);
   final Set<BluetoothDevice> favorites;
+  final BleSettings settings;
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
+  final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
 
   @override
   _BleSenseScreenState createState() => _BleSenseScreenState();
 }
 
 class _BleSenseScreenState extends State<BleSenseScreen> {
-  BluetoothDevice _connectedDevice;
   List<BluetoothService> _services;
-  BluetoothDevice _loadingDevice;
+  bool isLoading = true;
 
-  bool isLoading(BluetoothDevice device) {
-    if (_loadingDevice == device) {
-      return true;
-    } else {
-      return false;
+  final _writeController = TextEditingController();
+
+  List<ButtonTheme> _buildReadWriteNotifyButton(
+    BluetoothCharacteristic characteristic,
+  ) {
+    List<ButtonTheme> buttons = [];
+
+    if (characteristic.properties.read) {
+      buttons.add(
+        ButtonTheme(
+          minWidth: 10,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: TextButton(
+              child: Text('READ'),
+              onPressed: () async {
+                var sub = characteristic.value.listen((value) {
+                  setState(() {
+                    widget.readValues[characteristic.uuid] = value;
+                  });
+                });
+                await characteristic.read();
+                sub.cancel();
+              },
+            ),
+          ),
+        ),
+      );
     }
+    if (characteristic.properties.write) {
+      buttons.add(
+        ButtonTheme(
+          minWidth: 10,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: TextButton(
+              child: Text('WRITE'),
+              onPressed: () async {
+                await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("Write"),
+                        content: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: TextField(
+                                controller: _writeController,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text("Send"),
+                            onPressed: () {
+                              characteristic.write(
+                                  utf8.encode(_writeController.value.text));
+                              Navigator.pop(context);
+                            },
+                          ),
+                          TextButton(
+                            child: Text("Cancel"),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      );
+                    });
+              },
+            ),
+          ),
+        ),
+      );
+    }
+    if (characteristic.properties.notify) {
+      buttons.add(
+        ButtonTheme(
+          minWidth: 10,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: TextButton(
+              child: Text('NOTIFY'),
+              onPressed: () async {
+                characteristic.value.listen((value) {
+                  widget.readValues[characteristic.uuid] = value;
+                });
+                await characteristic.setNotifyValue(true);
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    return buttons;
   }
 
   Column _buildConnectDeviceView() {
     List<Container> containers = [];
 
     for (BluetoothService service in _services) {
-      List<Widget> characteristicsWidget = [];
+      if (service.uuid.toString() == widget.settings.service) {
+        List<Widget> characteristicsWidget = [];
 
-      for (BluetoothCharacteristic characteristic in service.characteristics) {
-        characteristicsWidget.add(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-              child: Column(
-                children: <Widget>[
-                  Row(
+        for (BluetoothCharacteristic characteristic
+            in service.characteristics) {
+          print(characteristic.uuid.toString());
+          print(widget.settings.moisture);
+          if (characteristic.uuid.toString() == widget.settings.moisture) {
+            characteristicsWidget.add(
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+                  child: Column(
                     children: <Widget>[
-                      Text(
-                        characteristic.uuid.toString(),
-                        style: TextStyle(fontSize: 20),
+                      Row(
+                        children: <Widget>[
+                          Container(
+                            width: 200,
+                            child: Text(
+                              "Moisture",
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ),
+                          ..._buildReadWriteNotifyButton(characteristic),
+                          Text(
+                            widget.readValues[characteristic.uuid].toString(),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
+            );
+          }
+        }
+
+        containers.add(
+          Container(
+            margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+            child: Column(
+              children: [
+                Text(
+                  "Sensor",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                Column(
+                  children: characteristicsWidget,
+                ),
+                Divider(),
+              ],
             ),
           ),
         );
       }
-
-      containers.add(
-        Container(
-          margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-          child: Column(
-            children: [
-              Text(
-                service.uuid.toString(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              Column(
-                children: characteristicsWidget,
-              ),
-              Divider(),
-            ],
-          ),
-        ),
-      );
     }
 
     return Column(
@@ -107,10 +217,10 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
                   ),
                   onExpansionChanged: (expanding) async {
                     if (expanding) {
-                      print("Expanding and connecting...");
                       setState(() {
-                        _loadingDevice = device;
+                        isLoading = true;
                       });
+                      print("Expanding and connecting...");
                       widget.flutterBlue.stopScan();
                       try {
                         await device.connect();
@@ -122,18 +232,22 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
                         _services = await device.discoverServices();
                       }
                       setState(() {
-                        _connectedDevice = device;
-                        _loadingDevice = null;
+                        isLoading = false;
                       });
-                      sleep(Duration(seconds: 1));
                     } else {
-                      print("Closing and disconnecting...");
+                      await device.disconnect();
                     }
                   },
                   children: [
-                    _connectedDevice != null
-                        ? _buildConnectDeviceView()
-                        : Text('No connected device'),
+                    isLoading
+                        ? Container(
+                            height: 60,
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                              widthFactor: 1.9,
+                            ),
+                          )
+                        : _buildConnectDeviceView()
                   ],
                 ),
               ),
