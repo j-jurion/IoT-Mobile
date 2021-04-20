@@ -12,7 +12,7 @@ class BleSenseScreen extends StatefulWidget {
   final BleSettings settings;
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
+  final Map<Guid, int> readValues = new Map<Guid, int>();
 
   @override
   _BleSenseScreenState createState() => _BleSenseScreenState();
@@ -41,7 +41,7 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
               onPressed: () async {
                 var sub = characteristic.value.listen((value) {
                   setState(() {
-                    widget.readValues[characteristic.uuid] = value;
+                    widget.readValues[characteristic.uuid] = value[0];
                   });
                 });
                 await characteristic.read();
@@ -111,7 +111,7 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
               child: Text('NOTIFY'),
               onPressed: () async {
                 characteristic.value.listen((value) {
-                  widget.readValues[characteristic.uuid] = value;
+                  widget.readValues[characteristic.uuid] = value[0];
                 });
                 await characteristic.setNotifyValue(true);
               },
@@ -130,40 +130,51 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
     for (BluetoothService service in _services) {
       if (service.uuid.toString() == widget.settings.service) {
         List<Widget> characteristicsWidget = [];
-
         for (BluetoothCharacteristic characteristic
             in service.characteristics) {
-          print(characteristic.uuid.toString());
-          print(widget.settings.moisture);
+          String characteristicText = characteristic.uuid.toString();
           if (characteristic.uuid.toString() == widget.settings.moisture) {
-            characteristicsWidget.add(
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-                  child: Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Container(
-                            width: 200,
-                            child: Text(
-                              "Moisture",
-                              style: TextStyle(fontSize: 20),
-                            ),
+            characteristicText = "Moisture";
+          } else if (characteristic.uuid.toString() ==
+              widget.settings.temperature) {
+            characteristicText = "Temperature";
+          } else if (characteristic.uuid.toString() == widget.settings.light) {
+            characteristicText = "Light";
+          }
+          characteristicsWidget.add(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Container(
+                          width: 180,
+                          child: Text(
+                            characteristicText,
+                            style: TextStyle(fontSize: 20),
                           ),
-                          ..._buildReadWriteNotifyButton(characteristic),
-                          Text(
+                        ),
+                        //To build for each characteristic a READ/WRITE/NOTIFY button
+                        //..._buildReadWriteNotifyButton(characteristic),
+                        Container(
+                          width: 180,
+                          child: Text(
                             widget.readValues[characteristic.uuid].toString(),
+                            style: TextStyle(fontSize: 20),
+                            textAlign: TextAlign.right,
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            );
-          }
+            ),
+          );
         }
 
         containers.add(
@@ -180,6 +191,21 @@ class _BleSenseScreenState extends State<BleSenseScreen> {
                 ),
                 Column(
                   children: characteristicsWidget,
+                ),
+                TextButton(
+                  child: Text('READ ALL'),
+                  onPressed: () async {
+                    for (BluetoothCharacteristic characteristic
+                        in service.characteristics) {
+                      var sub = characteristic.value.listen((value) {
+                        setState(() {
+                          widget.readValues[characteristic.uuid] = value[0];
+                        });
+                      });
+                      await characteristic.read();
+                      sub.cancel();
+                    }
+                  },
                 ),
                 Divider(),
               ],
